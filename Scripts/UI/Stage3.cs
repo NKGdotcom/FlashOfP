@@ -1,4 +1,5 @@
 using UnityEngine;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class Stage3 : MonoBehaviour
 {
@@ -8,11 +9,17 @@ public class Stage3 : MonoBehaviour
     {
         if (collision.gameObject.TryGetComponent<PlayerP>(out var _player))
         {
-            if (_player.ShotCount <= perfectScoreShotNum)
+            if (IsShortPopcornCnt(_player))
             {
                 clear.Stage3PerfectClear = true;
             }
             clear.Stage3Clear = true;
         }
+    }
+
+    //ポップコーンの放った回数が少ない場合
+    private bool IsShortPopcornCnt(PlayerP _player)
+    {
+        return _player.ShotCount <= perfectScoreShotNum;
     }
 }

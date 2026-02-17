@@ -7,7 +7,7 @@ public class Stage5 : MonoBehaviour
     {
         if (collision.gameObject.TryGetComponent<PlayerP>(out var _player))
         {
-            if (!_player.IsUp)
+            if (!_player.IsUp) //•‚‚©‚Ô‚±‚Æ‚ğg‚í‚È‚¢ê‡
             {
                 clear.Stage5PerfectClear = true;
             }

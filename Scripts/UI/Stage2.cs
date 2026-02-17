@@ -7,7 +7,7 @@ public class Stage2 : MonoBehaviour
     {
         if (collision.gameObject.TryGetComponent<PlayerP>(out var _player))
         {
-            if(_player.IsJump && _player.IsFlip)
+            if(_player.IsJump && _player.IsFlip) //ƒWƒƒƒ“ƒv‚Æ”½“]‚ð—¼•ûŽg‚Á‚½‚ç
             {
                 clear.Stage2PerfectClear = true;
             }
