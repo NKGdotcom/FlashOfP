@@ -9,8 +9,8 @@ public class PlayerJump : MonoBehaviour
     [SerializeField] private float jumpInterval = 1.0f;
     [SerializeField] private float jumpPower = 8;
     
-    //コルーチンで開始
-    public async UniTask AutoJumpLoop(PlayerP _player, CancellationToken _token)
+    //IsJumpがtrueになるまでジャンプを待つ
+    public async UniTask AutoJumpLoopAsync(PlayerP _player, CancellationToken _token)
     {
         while (true)
         {
@@ -21,8 +21,7 @@ public class PlayerJump : MonoBehaviour
             await UniTask.Delay(TimeSpan.FromSeconds(jumpInterval), cancellationToken: _token);
         }
     }
-
-    //ジャンプ
+    //ジャンプする
     private void Jump(PlayerP _player)
     {
         SoundManager.Instance.PlaySE(SESource.jump);

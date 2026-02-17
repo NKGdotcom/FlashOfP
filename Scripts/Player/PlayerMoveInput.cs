@@ -15,10 +15,29 @@ public class PlayerMoveInput : MonoBehaviour
 
     private Step stepManager;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    void Awake()
     {
         OnInitialize();
+    }
+
+    //初期設定
+    private void OnInitialize()
+    {
+        if (movePWords != null)
+        {
+            foreach (var movePWord in movePWords)
+            {
+                movePWord.MoveAction += OnDragStart;
+                movePWord.ReleaseAction += OnDragEnd;
+            }
+        }
+        NullCheck();
+    }
+
+    private void NullCheck()
+    {
+        if (player == null) { Debug.LogWarning("player(PlayerPスクリプト)が設定されていません"); return; }
+        if(movePWords == null) { Debug.LogWarning("movePWord(MovePwordスクリプト)が設定されていません"); return; }
     }
 
     // Update is called once per frame
@@ -39,38 +58,19 @@ public class PlayerMoveInput : MonoBehaviour
         }
     }
 
-
-    private void OnInitialize()
-    {
-        if(player == null)
-        {
-            Debug.LogWarning("player(PlayerPスクリプト)が設定されていません");
-        }
-
-        if(movePWords != null)
-        {
-            foreach(var movePWord in movePWords)
-            {
-                movePWord.MoveAction += OnDragStart;
-                movePWord.ReleaseAction += OnDragEnd;
-            }
-        }
-        else
-        {
-            Debug.LogWarning("movePWord(MovePwordスクリプト)が設定されていません");
-        }
-    }
-
     //タップエフェクトを見せる
     private void ShowTapEffect()
     {
         clickEffect.SetActive(false); //始める前に前にクリックしていたエフェクトをfalse
+
         Vector3 _clickPos = Input.mousePosition;
         _clickPos = Camera.main.ScreenToWorldPoint(_clickPos);
         _clickPos.z = zClickPos;
+
         clickEffect.transform.position = _clickPos;
         clickEffect.SetActive(true);
     }
+
     //ドラッグ開始
     private void OnDragStart()
     {

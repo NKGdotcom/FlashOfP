@@ -30,14 +30,14 @@ public class MovePWord : MonoBehaviour
     {
         originPoint = transform.localPosition;
 
-        if (textP != null)
-        {
-            textP.color = colorOffTheMove;
-        }
-        else
-        {
-            Debug.LogWarning("textPが設定されていません");
-        }
+        if (textP != null) { textP.color = colorOffTheMove; }
+        else { Debug.LogWarning("textPが設定されていません");  return; }
+    }
+
+    private void OnMouseDown()
+    {
+        SetVisibility();
+        MoveAction?.Invoke();
     }
 
     //Pの文字を視覚的に移動させる準備(色を変える、現在位置を保存)
@@ -49,6 +49,11 @@ public class MovePWord : MonoBehaviour
             (Input.mousePosition.x, Input.mousePosition.y));
     }
 
+    private void OnMouseDrag()
+    {
+        MovePVisually();
+    }
+
     //Pの文字を視覚的に移動
     private void MovePVisually()
     {
@@ -56,25 +61,6 @@ public class MovePWord : MonoBehaviour
         Vector3 _currentPosition = Camera.main.ScreenToWorldPoint(_currentMousePoint) + touchPoint;
         transform.position = _currentPosition;
     }
-
-    //Pの文字を視覚的に元の位置に戻る
-    private void BackP()
-    {
-        textP.color = colorOffTheMove;
-        transform.localPosition = originPoint;
-    }
-
-    private void OnMouseDown()
-    {
-        SetVisibility();
-        MoveAction?.Invoke();
-    }
-
-    private void OnMouseDrag()
-    {
-        MovePVisually();
-    }
-
     private void OnMouseUp()
     {
         if (isOnWord)
@@ -86,20 +72,25 @@ public class MovePWord : MonoBehaviour
         ReleaseAction?.Invoke();
     }
 
-
+    //Pの文字を視覚的に元の位置に戻る
+    private void BackP()
+    {
+        textP.color = colorOffTheMove;
+        transform.localPosition = originPoint;
+    }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.TryGetComponent<IWord>(out var wordObj))
+        if(collision.TryGetComponent<IWord>(out var _wordObj))
         {
             isOnWord = true;
-            iword = wordObj;
+            iword = _wordObj;
         }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.TryGetComponent<IWord>(out var wordObj))
+        if (collision.TryGetComponent<IWord>(out var _wordObj))
         {
             isOnWord = false;
             iword = null;

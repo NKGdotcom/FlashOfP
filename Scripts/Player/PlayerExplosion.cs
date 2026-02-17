@@ -11,14 +11,9 @@ public class PlayerExplosion : MonoBehaviour
         SoundManager.Instance.PlaySE(SESource.explosion);
         float _power = explosionPower;
 
-        if (!_player.IsFlip)
-        {
-            _power = explosionPower;
-        }
-        else
-        {
-            _power = -explosionPower;
-        }
+        //‚Ð‚Á‚­‚è•Ô‚Á‚Ä‚¢‚½‚ç—Í‚Ì‰Á‚í‚è•û‚à‹t‚É‚È‚é
+        if (!_player.IsFlip) _power = explosionPower;
+        else _power = -explosionPower;
 
         explosionEffect.SetActive(false);
         explosionEffect.transform.position = transform.position;

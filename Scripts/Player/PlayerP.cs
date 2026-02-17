@@ -1,6 +1,6 @@
 using Cysharp.Threading.Tasks;
+using System.Threading;
 using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 //プレイヤー自身(移動や能力が使えるようになる)
 public class PlayerP : MonoBehaviour
@@ -27,6 +27,7 @@ public class PlayerP : MonoBehaviour
 
     public Rigidbody2D PlayerRb { get; private set; }
     private Camera mainCamera;
+    private CancellationTokenSource abilityCts;
 
     public int ShotCount { get; set; } = 0;
     public int ExplosionCount { get; set; } = 0;
@@ -37,7 +38,7 @@ public class PlayerP : MonoBehaviour
     public bool IsUp { get; private set; }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    void Awake()
     {
         if(PlayerRb == null)
         {
@@ -47,12 +48,105 @@ public class PlayerP : MonoBehaviour
 
         OnInitialize();
     }
+    //初期処理
+    private void OnInitialize()
+    {
+        if (wordJumps != null)
+        {
+            foreach (var wordJump in wordJumps)
+            {
+                wordJump.FinishAction += SetJumpAbility;
+            }
+            IsJump = false;
+        }
+        
+        if (wordFlips != null)
+        {
+            foreach (var wordFlip in wordFlips)
+            {
+                wordFlip.FinishAction += SetFlipAbility;
+            }
+            IsFlip = false;
+        }
+
+        if (wordPopcorns != null)
+        {
+            foreach (var wordPopcorn in wordPopcorns)
+            {
+                wordPopcorn.FinishAction += SetPopcornAbility;
+            }
+            IsPopcorn = false;
+        }
+
+        if (wordExplosions != null)
+        {
+            foreach (var wordExplosion in wordExplosions)
+            {
+                wordExplosion.FinishAction += SetExplosionAbility;
+            }
+            IsExplosion = false;
+        }
+
+        if (wordUps != null)
+        {
+            foreach (var wordUp in wordUps)
+            {
+                wordUp.FinishAction += SetUpAbility;
+            }
+            IsUp = false;
+        }
+
+        NullCheck();
+    }
+
+    private void NullCheck()
+    {
+        if(wordJumps == null) { Debug.LogWarning("wordJump(WordJumpスクリプト)が設定されていません"); return; }
+        if (playerJump == null) { Debug.LogWarning("playerJump(PlayerJumpスクリプト)が設定されていません"); return; }
+        if(wordFlips == null) { Debug.LogWarning("wordFlip(WordFlipスクリプト)が設定されていません"); return; }
+        if(playerFlip == null) { Debug.LogWarning("playerFlip(PlayerFlipスクリプト)が設定されていません"); return; }
+        if(wordPopcorns == null) { Debug.LogWarning("wordPopcorn(WordPopcornスクリプト)が設定されていません"); return; }
+        if(playerPopcorn == null) { Debug.LogWarning("playerPopcorn(PlayerPopcornスクリプト)が設定されていません"); return; }
+        if(wordExplosions == null) { Debug.LogWarning("wordExplosion(WordExplosionスクリプト)が設定されていません"); return; }
+        if (playerExplosion == null) { Debug.LogWarning("playerExplosion(PlayerExplosionスクリプト)が設定されていません"); return; }
+        if (wordUps == null) { Debug.LogWarning("wordUp(WordUpスクリプト)が設定されていません"); return; }
+        if (playerUp == null) { Debug.LogWarning("playerUp(PlayerUpスクリプト)が設定されていません"); return; }
+    }
 
     private void OnEnable()
     {
         ResetVal();
 
-        StartAbilityCoroutine();
+        if (abilityCts != null)
+        {
+            abilityCts.Cancel();
+            abilityCts.Dispose();
+        }
+        abilityCts = new CancellationTokenSource();
+
+        StartAbilityInterval(abilityCts.Token);
+    }
+
+    //変数をリセット
+    private void ResetVal()
+    {
+        ShotCount = 0;
+        ExplosionCount = 0;
+        IsJump = false;
+
+        IsFlip = false;
+        playerFlip.ResetGravity(PlayerRb);
+
+        IsPopcorn = false;
+        IsExplosion = false;
+        IsUp = false;
+    }
+
+    //インターバルで何かするものをここに設定
+    private void StartAbilityInterval(CancellationToken _token)
+    {
+        if (playerJump != null) { playerJump.AutoJumpLoopAsync(this, _token).Forget(); } //一定期間でジャンプ
+        if (playerPopcorn != null) { playerPopcorn.AutoShotPopcornAsync(this, _token).Forget(); } //一定期間でポップコーンを投げる
     }
 
     void FixedUpdate()
@@ -78,7 +172,7 @@ public class PlayerP : MonoBehaviour
     private void SetFlipAbility()
     {
         IsFlip = true;
-        playerFlip.GravityChange(PlayerRb);
+        playerFlip.ChangeGravity(PlayerRb);
     }
 
     private void SetPopcornAbility()
@@ -96,7 +190,6 @@ public class PlayerP : MonoBehaviour
         IsUp = true;
     }
 
-
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.TryGetComponent<ExplosionItem>(out var explosionItem))
@@ -110,90 +203,13 @@ public class PlayerP : MonoBehaviour
         }
     }
 
-    //初期処理
-    private void OnInitialize()
+    private void OnDisable()
     {
-        if (wordJumps != null)
+        if (abilityCts != null)
         {
-            foreach(var wordJump in wordJumps)
-            {
-                wordJump.FinishAction += SetJumpAbility;
-            }
-            IsJump = false;
+            abilityCts.Cancel();
+            abilityCts.Dispose();
+            abilityCts = null; // 使い終わったら空にしておく
         }
-        else Debug.LogWarning("wordJump(WordJumpスクリプト)が設定されていません");
-
-
-        if (wordFlips != null)
-        {
-            foreach (var wordFlip in wordFlips)
-            {
-                wordFlip.FinishAction += SetFlipAbility;
-            }
-            IsFlip = false;
-        }
-        else Debug.LogWarning("wordFlip(WordFlipスクリプト)が設定されていません");
-
-        if (playerFlip == null) Debug.LogWarning("playerFlip(PlayerFlipスクリプト)が設定されていません");
-
-        if (wordPopcorns != null)
-        {
-            foreach(var wordPopcorn in wordPopcorns)
-            {
-                wordPopcorn.FinishAction += SetPopcornAbility;
-            }
-            IsPopcorn = false;
-        }
-        else Debug.LogWarning("wordPopcorn(WordPopcornスクリプト)が設定されていません");
-
-        if (wordExplosions != null)
-        {
-            foreach( var wordExplosion in wordExplosions)
-            {
-                wordExplosion.FinishAction += SetExplosionAbility;
-            }
-            IsExplosion = false;
-        }
-        else Debug.LogWarning("wordExplosion(WordExplosionスクリプト)が設定されていません");
-
-        if (playerExplosion == null) Debug.LogWarning("playerExplosion(PlayerExplosionスクリプト)が設定されていません");
-
-        if (wordUps != null)
-        {
-            foreach(var wordUp in wordUps)
-            {
-                wordUp.FinishAction += SetUpAbility;
-            }
-            IsUp = false;
-        }
-        else Debug.LogWarning("wordUp(WordUpスクリプト)が設定されていません");
-
-        if (playerUp == null) Debug.LogWarning("playerUp(PlayerUpスクリプト)が設定されていません");
-    }
-
-    private void StartAbilityCoroutine()
-    {
-        if (playerJump != null)
-        {
-            playerJump.AutoJumpLoop(this, this.GetCancellationTokenOnDestroy()).Forget();
-        }
-        else Debug.LogWarning("playerJump(PlayerJumpスクリプト)が設定されていません");
-
-        if (playerPopcorn != null)
-        {
-            playerPopcorn.AutoShotPopcornAsync(this, this.GetCancellationTokenOnDestroy()).Forget();
-        }
-        else Debug.LogWarning("playerPopcorn(PlayerPopcornスクリプト)が設定されていません");
-    }
-    //変数を削除
-    private void ResetVal()
-    {
-        ShotCount = 0;
-        ExplosionCount = 0;
-        IsJump = false;
-        IsFlip = false;
-        IsPopcorn = false;
-        IsExplosion = false;
-        IsUp = false;
     }
 }

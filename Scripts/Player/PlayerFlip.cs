@@ -2,8 +2,15 @@ using UnityEngine;
 
 public class PlayerFlip : MonoBehaviour
 {
-    public void GravityChange(Rigidbody2D _playerRb)
+    //d—Í‚ğ‹t‚É
+    public void ChangeGravity(Rigidbody2D _playerRb)
     {
-        _playerRb.gravityScale = -1f; //d—Í‚ğ‹t‚É
+        _playerRb.gravityScale = -1f; 
+    }
+
+    //d—Í‚ğŒ³‚É–ß‚·
+    public void ResetGravity(Rigidbody2D _playerRb)
+    {
+        _playerRb.gravityScale = 1f; 
     }
 }
