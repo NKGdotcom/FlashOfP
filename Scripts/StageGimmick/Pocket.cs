@@ -1,5 +1,6 @@
 using UnityEngine;
 
+//ポップコーンステージで使用
 public class Pocket : MonoBehaviour
 {
     [SerializeField] private GameObject displayObj;

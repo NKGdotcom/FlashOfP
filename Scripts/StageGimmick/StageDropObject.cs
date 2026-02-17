@@ -8,28 +8,42 @@ public class StageDropObject : MonoBehaviour
     [SerializeField] private Vector2[] originPos;
     [SerializeField] private WordDrop wordDrop;
 
-    private void Start()
+    private void Awake()
     {
-        if(wordDrop != null)
+        originPos = new Vector2[dropRbLists.Length];
+
+        if (wordDrop != null)
         {
             wordDrop.FinishAction += DropAllObject;
         }
-    }
-
-    private void OnEnable()
-    {
-        originPos = new Vector2[dropRbLists.Length];
-        for (int i =0; i < dropRbLists.Length; i++)
+        for (int i = 0; i < dropRbLists.Length; i++)
         {
             originPos[i] = dropRbLists[i].transform.position;
         }
     }
 
+    //オブジェクトを能力ですべて落とす
     private void DropAllObject()
     {
         for (int i = 0; i < dropRbLists.Length; i++)
         {
             dropRbLists[i].bodyType = RigidbodyType2D.Dynamic;
+        }
+    }
+
+    private void OnEnable()
+    {
+        ResetPos();
+    }
+
+    //初期位置に戻す
+    public void ResetPos()
+    {
+        for (int i = 0; i < dropRbLists.Length; i++)
+        {
+            dropRbLists[i].transform.position = originPos[i];
+            dropRbLists[i].transform.rotation = Quaternion.Euler(0, 0, 0);
+            dropRbLists[i].bodyType = RigidbodyType2D.Kinematic;
         }
     }
 }

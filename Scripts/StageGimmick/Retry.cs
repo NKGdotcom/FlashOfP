@@ -12,7 +12,6 @@ public class Retry : MonoBehaviour
     private const string CLEAR = "Clear";
     private float waitTime = 0.5f;
 
-    // Update is called once per frame
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.R))
@@ -29,6 +28,7 @@ public class Retry : MonoBehaviour
             StageRetryAsync(this.GetCancellationTokenOnDestroy()).Forget();
         }
     }
+    //ステージリトライ
     private async UniTask StageRetryAsync(CancellationToken _token)
     {
         SoundManager.Instance.PlaySE(SESource.retry);
