@@ -2,7 +2,6 @@ using Cysharp.Threading.Tasks;
 using System.Collections;
 using System.Threading;
 using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class SceneLoadStep : StepBase
 {
@@ -21,10 +20,12 @@ public class SceneLoadStep : StepBase
     {
         base.OnInitialized();
 
-        if (fadeAnimator == null)
-        {
-            Debug.LogWarning("fadeAnimator‚ªnull‚Å‚·");
-        }
+        NullCheck();
+    }
+
+    private void NullCheck()
+    {
+        if (fadeAnimator == null) { Debug.LogWarning("fadeAnimator‚ªnull‚Å‚·"); return; }
     }
 
     public override void EnterStep(PlayerMoveInput _playerMoveInput)

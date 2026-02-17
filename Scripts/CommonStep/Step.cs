@@ -5,17 +5,31 @@ public class Step : MonoBehaviour
 {
     [SerializeField] private StepBase[] flow;
     [SerializeField] private PlayerMoveInput playerMoveInput;
+    [SerializeField] private GameObject stageWords;
 
-    private int currentStep = -1; 
+    private int currentStep = -1; //一番最初に戻る
 
     private void Awake()
     {
         OnInitialized();
     }
+
+    //初期処理
+    private void OnInitialized()
+    {
+        if (flow != null)
+        {
+            foreach (var _step in flow)
+            {
+                _step.OnStepCompleted -= SetNextStep;
+                _step.OnStepCompleted += SetNextStep;
+            }
+        }
+    }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void OnEnable()
     {
-        if (currentStep == -1)
+        if (currentStep == -1) //一番最初に戻る
         {
             SetNextStep();
         }
@@ -30,19 +44,6 @@ public class Step : MonoBehaviour
         }
     }
 
-    //初期処理
-    private void OnInitialized()
-    {
-        if(flow != null)
-        {
-            foreach(var _step in flow)
-            {
-                _step.OnStepCompleted -= SetNextStep;
-                _step.OnStepCompleted += SetNextStep;
-            }
-        }
-    }
-
     //次のチュートリアルステップに移行
     private void SetNextStep()
     {
@@ -53,9 +54,9 @@ public class Step : MonoBehaviour
         }
         else //1チュートリアルステージの処理がすべて終わったら
         {
-            Debug.Log("チュートリアルが一つ終わりました");
+            Debug.Log("ステップがが一つ終わりました");
             currentStep = -1;　//Stepを一番初めからスタート
-            this.gameObject.SetActive(false);
+            gameObject.SetActive(false);
         }
     }
 
@@ -63,6 +64,8 @@ public class Step : MonoBehaviour
     public void RetryFromBeginning()
     {
         currentStep = -1; //一番初めからスタート
+        stageWords.SetActive(false);
+        stageWords.SetActive(true);
         SetNextStep();
     }
 

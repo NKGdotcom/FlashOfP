@@ -13,11 +13,15 @@ public class Goal : ConditionBase
     [SerializeField] private Animator goalAnimator;
 
     private const string GOAL_TRIGGER = "Goal";
+    private const string FINISH_STRING = "End";
+    private int defaultCamera = 0;
     private int priorityCamera = 20;
     private float waitEffectTime = 2f;
     private float waitSoundPlay = 2 / 3f;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+
+    private CancellationTokenSource disableCts;
+
+    void Awake()
     {
         NullCheck();
     }
@@ -25,23 +29,18 @@ public class Goal : ConditionBase
     //nullチェック
     private void NullCheck()
     {
-        if (goalCamera == null)
-        {
-            Debug.LogWarning("goalCameraが設定されていません");
-        }
-        if (goalAnimator == null)
-        {
-            Debug.LogWarning("goalAnimatorが設定されていません");
-        }
+        if (goalCamera == null) { Debug.LogWarning("goalCameraが設定されていません"); return; }
+        if (goalAnimator == null) { Debug.LogWarning("goalAnimatorが設定されていません"); return; }
     }
 
-    //ゴール演出が終わった後、何をするか
-    public void GoalNextAction()
+    private void OnEnable()
     {
-        goalAnimator.ResetTrigger(GOAL_TRIGGER);
-        isGoal = true;
+        goalCamera.Priority = defaultCamera;
+        disableCts = new CancellationTokenSource();
+        isGoal = false;
     }
 
+    //ゴールしたかの確認
     public override bool CheckCondition()
     {
         return isGoal;
@@ -56,17 +55,38 @@ public class Goal : ConditionBase
         }
     }
 
+    //ゴールエフェクトのタイミング
      private async UniTaskVoid GoalEffectAsync(CancellationToken _token)
     {
+        Debug.Log("ゴールエフェクト発火");
         goalCamera.Priority = priorityCamera;
         goalAnimator.SetTrigger(GOAL_TRIGGER);
 
-        await UniTask.Delay(TimeSpan.FromSeconds(waitSoundPlay), cancellationToken: _token); //音をアニメーションに合わせてタイミング良く鳴らす
+        await UniTask.Delay(TimeSpan.FromSeconds(waitSoundPlay), cancellationToken: _token); //ゴールポイントの演出に対応して音を鳴らす
 
         SoundManager.Instance.PlaySE(SESource.stageclear);
 
-        await UniTask.Delay(TimeSpan.FromSeconds(waitEffectTime), cancellationToken: _token); //エフェクトを鳴らしてから少し待つ(アニメーションで鳴らしてます)
+        await UniTask.Delay(TimeSpan.FromSeconds(waitEffectTime), cancellationToken: _token); //少し待って次のアクションに移る
 
         GoalNextAction();
+    }
+
+    //ゴール演出が終わった後、何をするか
+    public void GoalNextAction()
+    {
+        Debug.Log("終了");
+        goalAnimator.ResetTrigger(GOAL_TRIGGER);
+        isGoal = true;
+    }
+
+    private void OnDisable()
+    {
+        if (disableCts != null)
+        {
+            disableCts.Cancel();
+            disableCts.Dispose();
+            disableCts = null;
+        }
+        goalAnimator.SetTrigger(FINISH_STRING);
     }
 }

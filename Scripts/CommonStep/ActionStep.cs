@@ -9,7 +9,7 @@ public class ActionStep : StepBase
 
     //[SerializeField] private float delayTime = 0.2f;
     private bool nextStep = false;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
     private void Awake()
     {
         OnInitialized();
@@ -31,13 +31,12 @@ public class ActionStep : StepBase
     public override void EnterStep(PlayerMoveInput _playerMoveInput)
     {
         base.EnterStep(_playerMoveInput);
-
+        nextStep = false;
         EnableInputWithDelayAsync(_playerMoveInput, this.GetCancellationTokenOnDestroy()).Forget();
     }
 
     private async UniTask EnableInputWithDelayAsync(PlayerMoveInput _input, CancellationToken _token)
     {
-
         await UniTask.Yield(_token);
 
         if (_input != null) _input.IsTutorial = false;
@@ -49,6 +48,7 @@ public class ActionStep : StepBase
         {
             if (!nextStep)
             {
+                Debug.Log("次のステップへ");
                 nextStep = true;
                 Complete();
             }
