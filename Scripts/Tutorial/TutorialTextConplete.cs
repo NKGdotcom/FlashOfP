@@ -4,17 +4,8 @@ public class TutorialTextConplete : ConditionBase
 {
     private bool isComplete = false;
 
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
+    //チュートリアルのテキストが終わったか判断
     public override bool CheckCondition()
     {
         return isComplete;

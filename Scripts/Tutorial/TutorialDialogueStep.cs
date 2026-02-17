@@ -12,10 +12,12 @@ public class TutorialDialogueStep : StepBase
 
     public override void OnInitialized()
     {
-        if (tutorialDialogueData == null)
-        {
-            Debug.LogWarning("tutorialDialogueDataがnullです");
-        }
+        NullCheck();
+    }
+
+    private void NullCheck()
+    {
+        if (tutorialDialogueData == null) { Debug.LogWarning("tutorialDialogueDataが設定していません"); return; }
     }
 
     public override void EnterStep(PlayerMoveInput _playerMoveInput)
@@ -44,7 +46,7 @@ public class TutorialDialogueStep : StepBase
         }
     }
 
-    //データを渡す処理
+    //チュートリアルのデータを渡す処理
     private void UpdateView()
     {
         string _dialogueData = tutorialDialogueData.DialoguesLists[currentLine].TutorialDialogueText;
@@ -57,6 +59,7 @@ public class TutorialDialogueStep : StepBase
         base.ExitStep();
 
         TutorialDialogueDisplay.Instance.HiddenUI();
+
         Complete();
     }
 }

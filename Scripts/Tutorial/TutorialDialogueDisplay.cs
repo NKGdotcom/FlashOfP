@@ -20,10 +20,7 @@ public class TutorialDialogueDisplay : MonoBehaviour
 
     private void Awake()
     {
-        if(Instance == null)
-        {
-            Instance = this;
-        }
+        if(Instance == null) Instance = this;
 
         OnInitialized();
 
@@ -33,14 +30,13 @@ public class TutorialDialogueDisplay : MonoBehaviour
     //初期化処理
     private void OnInitialized()
     {
-        if(tutorialDialogueText == null)
-        {
-            Debug.LogWarning(" tutorialDialogueTextがnullです");
-        }
-        if(dialogueUI == null)
-        {
-            Debug.LogWarning("dialogueUIがnullです");
-        }
+        NullCheck();
+    }
+
+    private void NullCheck()
+    {
+        if (tutorialDialogueText == null) { Debug.LogWarning(" tutorialDialogueTextが設定されていません");  return; }
+        if (dialogueUI == null) { Debug.LogWarning("dialogueUIが設定されていません");  return; }
     }
 
     //UIを非表示
@@ -63,7 +59,7 @@ public class TutorialDialogueDisplay : MonoBehaviour
         PrintDialogue();
     }
 
-    //コルーチンを準備
+    //チュートリアルの文字を流す準備
     private void PrintDialogue()
     {
         if (typingCts != null)
@@ -77,6 +73,7 @@ public class TutorialDialogueDisplay : MonoBehaviour
         TypeSentenceAsync(typingCts.Token).Forget();
     }
 
+    //文字を一文字ずつ打つ
     private async UniTaskVoid TypeSentenceAsync(CancellationToken _token)
     {
         tutorialDialogueText.text = EMPTY_STRING;
