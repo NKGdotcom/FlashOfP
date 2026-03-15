@@ -1,35 +1,47 @@
+using Cysharp.Threading.Tasks;
 using System;
+using System.Threading;
 using UnityEngine;
-
-public abstract class StepBase : MonoBehaviour
+/// <summary>
+/// ステップの元となるクラス
+/// </summary>
+public abstract class StepBase : MonoBehaviour, IStep
 {
     //ステップ完了時に通知
-    public Action OnStepCompleted;
-
-    //参照チェックをする
-    public virtual void OnInitialized()
+    public event Action OnFinishStep;
+    /// <summary>
+    /// ステップに入った時に呼び出す
+    /// </summary>
+    public virtual void EnterStep()
     {
 
     }
-
-    //ステップが入ったとき
-    public virtual void EnterStep(PlayerMoveInput _playerMoveInput)
+    /// <summary>
+    /// 毎フレームチェック
+    /// </summary>
+    public virtual void UpdateStep()
     {
 
     }
-
-    //毎フレームチェック
-    public abstract void UpdateStep();
-
-    //ステップが終わったときの処理
+    /// <summary>
+    /// ステップを抜けるときに呼ぶ
+    /// </summary>
     public virtual void ExitStep()
     {
 
     }
-
-    //ステップが完了したと伝える
+    /// <summary>
+    /// リトライの時に呼び出す
+    /// </summary>
+    public virtual UniTask RetryStep(CancellationToken _token)
+    {
+       return UniTask.CompletedTask;
+    }
+    /// <summary>
+    /// 終了したときに呼び出す
+    /// </summary>
     protected void Complete()
     {
-        OnStepCompleted?.Invoke();
+        OnFinishStep?.Invoke();
     }
 }

@@ -2,67 +2,58 @@ using Cysharp.Threading.Tasks;
 using System.Collections;
 using System.Threading;
 using UnityEngine;
-
+/// <summary>
+/// シーンの呼び出しステップ
+/// </summary>
 public class SceneLoadStep : StepBase
 {
-    [SerializeField] private Animator fadeAnimator;
+    //---プレイヤーの初期位置を設定---
+    [SerializeField] private PlayerController player;
     [SerializeField] private Transform playerSetPos;
-    [SerializeField] private bool isFirstTutorialOrStageSelect;
-
-    private const string BOOL_CREAR = "Clear";
+    [SerializeField] private bool isFirstTutorial = false;
+    [SerializeField] private bool isStageSelect = false;
+    //---フェードイン用---
+    [SerializeField] private Fade fadeIn;
 
     private void Awake()
     {
-        OnInitialized();
+        if (player == null) { Debug.LogError("playerが参照されていません"); return; }
+        if (fadeIn == null) { Debug.LogWarning("fadeInが参照されていません"); return; }
     }
-
-    public override void OnInitialized()
+    public override void EnterStep()
     {
-        base.OnInitialized();
-
-        NullCheck();
+        fadeIn.FadeInAsync(this.GetCancellationTokenOnDestroy()).Forget();
+        PlayerInitialSet();
+        ExitStep();
     }
-
-    private void NullCheck()
+    /// <summary>
+    /// プレイヤーの初期処理
+    /// 初期位置に設定＋SetActiveをtrueにするか
+    /// </summary>
+    private void PlayerInitialSet()
     {
-        if (fadeAnimator == null) { Debug.LogWarning("fadeAnimatorがnullです"); return; }
-    }
-
-    public override void EnterStep(PlayerMoveInput _playerMoveInput)
-    {
-        if (!isFirstTutorialOrStageSelect)
+        player.gameObject.SetActive(false);
+        player.PlayerResetAbility();
+        //---一番初めのチュートリアルorステージ選択ではプレイヤーを表示しない---
+        if (!isFirstTutorial && !isStageSelect)
         {
-            _playerMoveInput.gameObject.SetActive(true);
-            _playerMoveInput.transform.position = playerSetPos.position;
+            player.gameObject.SetActive(true);
         }
-
-        PlayerP _player = _playerMoveInput.GetComponent<PlayerP>();
-        if(_player != null && _player.PlayerRb != null)
+        if (!isStageSelect)
         {
-            _player.PlayerRb.linearVelocity = Vector2.zero;
-            _player.PlayerRb.angularVelocity = 0f;
-            _player.transform.rotation = Quaternion.identity;
+            player.transform.position = playerSetPos.position;
         }
-
-        WaitAnimationSequenceAsync(this.GetCancellationTokenOnDestroy()).Forget();
     }
-
     public override void UpdateStep()
     {
 
     }
-
-    private async UniTask WaitAnimationSequenceAsync(CancellationToken _token)
+    public override UniTask RetryStep(CancellationToken token)
     {
-        fadeAnimator.SetBool(BOOL_CREAR, true);
-
-        await UniTask.Yield(_token);
-
-        NextStep();
+        PlayerInitialSet();
+        return UniTask.CompletedTask;
     }
-
-    //次の処理を実行
-    private void NextStep()
+    public override void ExitStep()
     {
         Complete();
     }

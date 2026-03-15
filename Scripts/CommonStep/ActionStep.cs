@@ -2,60 +2,51 @@ using Cysharp.Threading.Tasks;
 using System.Collections;
 using System.Threading;
 using UnityEngine;
-
+/// <summary>
+/// 何か条件が終わるまで(ゲーム本編)
+/// </summary>
 public class ActionStep : StepBase
 {
-    [SerializeField] private ConditionBase completeCondition;
-
-    //[SerializeField] private float delayTime = 0.2f;
+    //---次に進む条件となるもの---
+    [SerializeField] private BaseCondition condition;
     private bool nextStep = false;
 
     private void Awake()
     {
-        OnInitialized();
+        if (condition == null) { Debug.LogError("conditionが参照されていません");  return; }
     }
-    public override void OnInitialized()
+    public override void EnterStep()
     {
-        base.OnInitialized();
-
-        if (completeCondition != null)
-        {
-            completeCondition.OnInitialize();
-        }
-        else
-        {
-            Debug.LogError("完了条件(Condition)が設定されていません！");
-        }
+        GameStart();
     }
-
-    public override void EnterStep(PlayerMoveInput _playerMoveInput)
+    /// <summary>
+    /// ゲームスタート
+    /// </summary>
+    private void GameStart()
     {
-        base.EnterStep(_playerMoveInput);
         nextStep = false;
-        EnableInputWithDelayAsync(_playerMoveInput, this.GetCancellationTokenOnDestroy()).Forget();
+        GameState.Instance.SetState(State.GAME_ACT);
     }
-
-    private async UniTask EnableInputWithDelayAsync(PlayerMoveInput _input, CancellationToken _token)
-    {
-        await UniTask.Yield(_token);
-
-        if (_input != null) _input.IsTutorial = false;
-    }
-
     public override void UpdateStep()
     {
-        if (completeCondition != null && completeCondition.CheckCondition())
+        if (condition.CheckCondition())
         {
             if (!nextStep)
             {
-                Debug.Log("次のステップへ");
                 nextStep = true;
-                Complete();
+                ExitStep();
             }
         }
     }
+    public override UniTask RetryStep(CancellationToken token)
+    {
+        condition.ResetCondition();
+        nextStep = false;
+
+        return UniTask.CompletedTask;
+    }
     public override void ExitStep()
     {
-        base.ExitStep();
+        Complete();
     }
 }

@@ -4,75 +4,55 @@ using System.Collections;
 using System.Threading;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-
+/// <summary>
+/// シーンの切り替えステップ
+/// </summary>
 public class SceneChangeStep : StepBase
 {
-    [SerializeField] private Animator fadeAnimator;
-    [SerializeField] private GameObject showStage; //出現させるステージ
-
-    public void SetNextStage(GameObject stage)
-    {
-        showStage = stage;
-    }
-
-    private const string BOOL_CREAR = "Clear";
-
+    [SerializeField] private Fade fadeOut;
+    [SerializeField] private GameObject nextStepStage; //出現させるステージ
     private void Awake()
     {
-        OnInitialized();
+        if (fadeOut == null) { Debug.LogError("fadeOutが参照されていません"); return; }
     }
-    //初期処理
-    public override void OnInitialized()
+    public override void EnterStep()
     {
-        base.OnInitialized();
-
-        NullCheck();
+        FadeOutLoadSceneAsync(this.GetCancellationTokenOnDestroy()).Forget();
     }
-
-    //参照確認
-    private void NullCheck()
+    /// <summary>
+    /// フェードアウトして、次のシーンをロードし、ステップを終了する
+    /// </summary>
+    private async UniTask FadeOutLoadSceneAsync(CancellationToken _token)
     {
-        if (fadeAnimator == null) { Debug.LogWarning("fadeAnimatorがnullです"); return; }
-        if (showStage == null) { Debug.LogWarning("showStageがnullです"); return; }
+        await fadeOut.FadeOutAsync(_token); 
+        LoadScene(nextStepStage);  
     }
-
-    public override void EnterStep(PlayerMoveInput _playerMoveInput)
+    /// <summary>
+    /// 次に進むステージを設定
+    /// </summary>
+    /// <param name="stage"></param>
+    public void SetNextStage(GameObject _stage)
     {
-        StartTutorial(_playerMoveInput);
-        WaitAnimationSequenceAsync(this.GetCancellationTokenOnDestroy()).Forget();
+        nextStepStage = _stage;
     }
-
-    //絶対チュートリアルから始める
-    private void StartTutorial(PlayerMoveInput _playerMoveInput)
-    {
-        _playerMoveInput.IsTutorial = true;
-    }
-
     public override void UpdateStep()
     {
 
     }
-
-    //クリアしたら別のシーンに移る 
-    private async UniTask WaitAnimationSequenceAsync(CancellationToken _token)
+    public override async UniTask RetryStep(CancellationToken _token)
     {
-        fadeAnimator.SetBool(BOOL_CREAR, false);
-
-        //再生するアニメーションを取得するため1フレーム待つ
-        await UniTask.Yield(_token);
-
-        AnimatorStateInfo _stateInfo = fadeAnimator.GetCurrentAnimatorStateInfo(0);
-
-        await UniTask.Delay(TimeSpan.FromSeconds(_stateInfo.length), cancellationToken: _token);
-
-        LoadScene();
+        await fadeOut.FadeOutAsync(_token);
     }
-
-    //新しく出すシーンをロード
-    private void LoadScene()
+    /// <summary>
+    /// 新しく出すシーンをロード
+    /// </summary>
+    private void LoadScene(GameObject _nextStepStage)
     {
-        showStage.SetActive(true);
+        _nextStepStage.SetActive(true);
+        ExitStep();
+    }
+    public override void ExitStep()
+    {
         Complete();
     }
 }
