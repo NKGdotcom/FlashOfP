@@ -1,41 +1,67 @@
 using Cysharp.Threading.Tasks;
 using System;
 using System.Collections;
+using System.Linq;
 using System.Threading;
 using UnityEngine;
 
+/// <summary>
+/// ジャンプの挙動
+/// </summary>
 public class PlayerJump : MonoBehaviour
 {
-    [SerializeField] private float jumpInterval = 1.0f;
-    [SerializeField] private float jumpPower = 8;
-    
-    //IsJumpがtrueになるまでジャンプを待つ
-    public async UniTask AutoJumpLoopAsync(PlayerP _player, CancellationToken _token)
+    //---物理移動---
+    [SerializeField] private PlayerRbMover playerRbMover;
+    [SerializeField] private WordJump[] wordJumps;
+    //---ジャンプの挙動---
+    private float jumpPower;
+    private float jumpInterval;
+    private CancellationTokenSource abilityCts;
+
+    private void Awake()
+    {
+        if(playerRbMover == null) { Debug.LogError("playerRbMoverが参照されていません"); return; }
+    }
+    public void OnEnable()
+    {
+        if (abilityCts != null)
+        {
+            abilityCts.Cancel();
+            abilityCts.Dispose();
+        }
+        abilityCts = new CancellationTokenSource();
+        AutoJumpLoopAsync(abilityCts.Token).Forget();
+    }
+    public void SetParameter(PlayerData _data)
+    {
+        jumpPower = _data.jumpPower;
+        jumpInterval = _data.jumpInterval;
+    }
+    /// <summary>
+    /// IsJumpがtrueになるまでジャンプを待つ
+    /// </summary>
+    /// <param name="_token"></param>
+    /// <returns></returns>
+    public async UniTask AutoJumpLoopAsync(CancellationToken _token)
     {
         while (true)
         {
-            await UniTask.WaitUntil(() => _player.IsJump, cancellationToken: _token);
+            //---どれかがIsJumpTriggertrueになったら---
+            await UniTask.WaitUntil(() => wordJumps.Any(w => w != null && w.IsJumpTrigger), cancellationToken: _token);
+            var triggeredWord = wordJumps.FirstOrDefault(w => w != null && w.IsJumpTrigger);
 
-            Jump(_player);
+            playerRbMover.JumpRb(jumpPower);
 
             await UniTask.Delay(TimeSpan.FromSeconds(jumpInterval), cancellationToken: _token);
         }
     }
-    //ジャンプする
-    private void Jump(PlayerP _player)
+    private void OnDisable()
     {
-        SoundManager.Instance.PlaySE(SESource.jump);
-
-        if (_player.PlayerRb != null)
+        if (abilityCts != null)
         {
-            if (_player.IsFlip)
-            {
-                _player.PlayerRb.linearVelocity = new Vector2(_player.PlayerRb.linearVelocity.x, -jumpPower);
-            }
-            else //重力逆の効果があるかどうか
-            {
-                _player.PlayerRb.linearVelocity = new Vector2(_player.PlayerRb.linearVelocity.x, jumpPower);
-            }
+            abilityCts.Cancel();
+            abilityCts.Dispose();
+            abilityCts = null;
         }
     }
 }
