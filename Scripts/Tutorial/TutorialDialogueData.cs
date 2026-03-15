@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+/// <summary>
+/// チュートリアルで話す内容をリスト化
+/// </summary>
 [CreateAssetMenu(fileName = "New Data", menuName = "TutorialData")]
 public class TutorialDialogueData : ScriptableObject
 {
