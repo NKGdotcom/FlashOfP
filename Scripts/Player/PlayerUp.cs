@@ -1,16 +1,31 @@
 using UnityEngine;
 using UnityEngine.Rendering;
-
+using System.Linq;
+/// <summary>
+/// 徐々に浮かぶ処理
+/// </summary>
 public class PlayerUp : MonoBehaviour
 {
-    [SerializeField] private float upSpeed = 1f;
+    //---物理移動---
+    [SerializeField] private PlayerRbMover playerRbMover;
+    [SerializeField] private WordUp[] wordUps;
+    //---浮遊パラメータ---
+    private float upSpeed;
 
-    //上に浮かぶ
-    public void Floating(PlayerP _player)
+    public void SetUp(PlayerData _data)
     {
-        if (_player.IsUp)
+        upSpeed = _data.upSpeed;
+    }
+    //上に浮かぶ
+    public void Floating()
+    {
+        bool _canUp = wordUps.Any(w => w != null && w.IsUp);
+
+        if (!_canUp)
         {
-            _player.PlayerRb.linearVelocity = new Vector2(_player.PlayerRb.linearVelocity.x, upSpeed);
+            return;
         }
+
+        playerRbMover.UpRb(upSpeed);
     }
 }
