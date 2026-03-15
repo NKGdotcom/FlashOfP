@@ -1,17 +1,24 @@
 using UnityEngine;
 using System;
-
+/// <summary>
+/// ポップコーンを発射
+/// </summary>
 public class WordPopcorn : BaseWord
 {
-    [SerializeField] private Animator popcornAnimator;
-    private const string POPCORN_STRING = "PopCorn";
+    public bool IsPopcornTrigger { get; set; } = false;
 
     //アニメーションを再生
-    public override void WordEffect(GameObject _word)
+    public override void WordEffect()
     {
-        if (popcornAnimator == null) { Debug.LogWarning("アニメーターが接続されていません"); return; }
-
-        popcornAnimator.SetTrigger(POPCORN_STRING);
-        FinishActionEvent(); //ポップコーンの球を発射
+        base.WordEffect();
+        SoundManager.Instance.PlaySE(SESource.POPCORN);
+        wordAnimator.PopcornAnimation();
+        IsPopcornTrigger = true;
+        FinishActionEvent();
+    }
+    public override void ResetWord()
+    {
+        base.ResetWord();
+        IsPopcornTrigger = false;
     }
 }

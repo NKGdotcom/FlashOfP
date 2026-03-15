@@ -1,35 +1,49 @@
 using System;
 using UnityEngine;
-
+using UnityEngine.EventSystems;
+/// <summary>
+/// 言葉の元となるもの
+/// </summary>
 public class BaseWord : MonoBehaviour, IWord
 {
-    private RectTransform rectTransform;
-    private Vector2 originPos;
-
-    public event Action FinishAction;
+    //---言葉を完成した際のアニメーション
+    [SerializeField] protected WordAnimationController wordAnimator;
+    private bool isAnimated = false;
+    //---言葉を使用した---
+    public event Action WordComplete;
 
     private void Awake()
     {
-        rectTransform = GetComponent<RectTransform>();
-        if(rectTransform != null)
-        {
-            originPos = rectTransform.anchoredPosition;
-        }
+        if (wordAnimator == null) { Debug.LogWarning("wordAnimatorが参照されていません"); return; }
     }
-
     private void OnEnable()
     {
-        rectTransform.anchoredPosition = originPos;
+        
     }
-
-    public virtual void WordEffect(GameObject _word)
+    /// <summary>
+    /// 言葉の位置などをリセット
+    /// </summary>
+    public virtual void ResetWord()
     {
-
+        if(isAnimated)
+        {
+            isAnimated = false;
+            wordAnimator.EndAnimation();
+        }
     }
-
-    //言葉を使う
+    /// <summary>
+    /// 言葉の効果
+    /// </summary>
+    /// <param name="_word"></param>
+    public virtual void WordEffect()
+    {
+        isAnimated = true;
+    }
+    /// <summary>
+    /// 言葉が完成した後
+    /// </summary>
     public void FinishActionEvent()
     {
-        FinishAction?.Invoke();
+        WordComplete?.Invoke();
     }
 }

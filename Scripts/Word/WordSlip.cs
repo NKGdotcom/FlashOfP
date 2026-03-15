@@ -1,18 +1,23 @@
 using UnityEngine;
 using System;
-
+/// <summary>
+/// 物を滑らせる
+/// </summary>
 public class WordSlip : BaseWord
 {
-    [SerializeField] private Animator slipAnimator;
-    private const string SLIP_STRING = "Slip";
-
+    [SerializeField] private StageSlipObject stageSlipObject;
     //アニメーションを再生
-    public override void WordEffect(GameObject _word)
+    public override void WordEffect()
     {
-        if (slipAnimator == null) { Debug.LogWarning("アニメーターが接続されていません");  return; }
-
-        SoundManager.Instance.PlaySE(SESource.slip);
-        slipAnimator.SetTrigger(SLIP_STRING);
-        FinishActionEvent(); //オブジェクトが滑るように
+        base.WordEffect();
+        SoundManager.Instance.PlaySE(SESource.SLIP);
+        wordAnimator.SlipAnimation();
+        stageSlipObject.SlipFloor();
+        FinishActionEvent();
+    }
+    public override void ResetWord()
+    {
+        base.ResetWord();
+        stageSlipObject.ResetFloor();
     }
 }

@@ -1,26 +1,47 @@
+using Cysharp.Threading.Tasks;
 using System;
 using System.Collections;
+using System.Threading;
 using UnityEngine;
 
-//playerWordをオブジェクトとして追加(予定ではtutorialのみ)
+/// <summary>
+/// プレイヤーを生成
+/// </summary>
 public class WordPlayer : BaseWord
 {
-    [SerializeField] private Animator unionAnimator;
-    [SerializeField] private GameObject p;
-    private const string UNION_STRING = "CompleteWord";
+    [SerializeField] private GameObject playerObj;
 
-    //アニメーションを再生
-    public override void WordEffect(GameObject _word)
+    private void Awake()
     {
-        if(unionAnimator == null) { Debug.LogWarning("アニメーターが接続されていません"); return; }
-
-        unionAnimator.SetTrigger(UNION_STRING);
-        FinishActionEvent(); //OneTutorialStoryに伝える
-        p.transform.parent = null;
+        if(playerObj == null) { Debug.LogError("playerObjが参照されていません"); return; }
     }
-    //アニメーションで関数呼び出し
-    private void FinishAnimation() 
+    private void OnEnable()
     {
-        p.SetActive(true);
+
+    }
+    /// <summary>
+    /// アニメーションを再生
+    /// </summary>
+    public override void WordEffect()
+    {
+        SoundManager.Instance.PlaySE(SESource.GET_WORD);    
+        WordPerformanceAsync(this.GetCancellationTokenOnDestroy()).Forget();
+    }
+
+    /// <summary>
+    /// ワードパフォーマンス
+    /// </summary>
+    /// <param name="_token"></param>
+    /// <returns></returns>
+    public async UniTaskVoid WordPerformanceAsync(CancellationToken _token) 
+    {
+        await wordAnimator.PlayerAnimAnimationAsync(_token);
+
+        playerObj.SetActive(true);
+        FinishActionEvent();
+    }
+    public override void ResetWord()
+    {
+        base.ResetWord();
     }
 }
