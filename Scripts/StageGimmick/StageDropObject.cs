@@ -1,42 +1,41 @@
 using NUnit.Framework;
 using Unity.Burst;
 using UnityEngine;
-
+/// <summary>
+/// ドロップで落とすオブジェクト
+/// </summary>
 public class StageDropObject : MonoBehaviour
 {
+    //---落とすオブジェクト---
     [SerializeField] private Rigidbody2D[] dropRbLists;
-    [SerializeField] private Vector2[] originPos;
-    [SerializeField] private WordDrop wordDrop;
+    private Vector2[] originPos;
 
     private void Awake()
     {
         originPos = new Vector2[dropRbLists.Length];
 
-        if (wordDrop != null)
-        {
-            wordDrop.FinishAction += DropAllObject;
-        }
         for (int i = 0; i < dropRbLists.Length; i++)
         {
             originPos[i] = dropRbLists[i].transform.position;
         }
     }
-
-    //オブジェクトを能力ですべて落とす
-    private void DropAllObject()
+    /// <summary>
+    /// オブジェクトを能力ですべて落とす
+    /// </summary>
+    public void DropAllObject()
     {
         for (int i = 0; i < dropRbLists.Length; i++)
         {
             dropRbLists[i].bodyType = RigidbodyType2D.Dynamic;
         }
     }
-
     private void OnEnable()
     {
         ResetPos();
     }
-
-    //初期位置に戻す
+    /// <summary>
+    /// 初期位置に戻す
+    /// </summary>
     public void ResetPos()
     {
         for (int i = 0; i < dropRbLists.Length; i++)

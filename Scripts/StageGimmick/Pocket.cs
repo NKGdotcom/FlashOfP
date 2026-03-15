@@ -1,6 +1,9 @@
 using UnityEngine;
 
-//ポップコーンステージで使用
+/// <summary>
+/// ポップコーンステージで使用
+/// ポップコーンに触れた場合何か処理を実行
+/// </summary>
 public class Pocket : MonoBehaviour
 {
     [SerializeField] private GameObject displayObj;

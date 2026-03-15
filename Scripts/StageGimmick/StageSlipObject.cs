@@ -1,9 +1,10 @@
-using TMPro;
 using UnityEngine;
-
+/// <summary>
+/// スリップで凍らせるオブジェクト
+/// </summary>
 public class StageSlipObject : MonoBehaviour
 {
-    [SerializeField] private WordSlip wordSlip;
+    //---凍らせるオブジェクト---
     [SerializeField] private BoxCollider2D slipObject;
     [SerializeField] private PhysicsMaterial2D heaveyMaterial;
     [SerializeField] private PhysicsMaterial2D slipMaterial;
@@ -13,22 +14,23 @@ public class StageSlipObject : MonoBehaviour
     void Awake()
     {
         spriteRenderer = slipObject.GetComponent<SpriteRenderer>();
-        wordSlip.FinishAction += SlipFloor;
     }
-
-    //床が滑るように
-    private void SlipFloor()
-    {
-        slipObject.sharedMaterial = slipMaterial;
-        spriteRenderer.color = Color.cyan;
-    }
-
     private void OnEnable()
     {
         ResetFloor();
     }
-    //床の状態を元に戻す
-    private void ResetFloor()
+    /// <summary>
+    /// 床が滑るように
+    /// </summary>
+    public void SlipFloor()
+    {
+        slipObject.sharedMaterial = slipMaterial;
+        spriteRenderer.color = Color.cyan;
+    }
+    /// <summary>
+    /// 床の状態を元に戻す
+    /// </summary>
+    public void ResetFloor()
     {
         slipObject.sharedMaterial = heaveyMaterial;
         spriteRenderer.color = Color.white;
