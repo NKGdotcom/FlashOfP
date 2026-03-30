@@ -35,6 +35,8 @@ public class PlayerController : MonoBehaviour
         playerJump.SetParameter(playerData);
         playerRbMover.SetUp();
         playerPopcorn.SetParameter(playerData);
+        playerExplosion.SetUp(playerData);
+        playerUp.SetUp(playerData);
     }
     // Update is called once per frame
     void Update()
@@ -60,6 +62,10 @@ public class PlayerController : MonoBehaviour
     public void PlayerResetAbility()
     {
         playerFlip.RestoreGravity();
+        playerPopcorn.ResetPopcorn();
+        playerExplosion.ResetExplosion();
+        playerUp.ResetUp();
+        playerJump.ResetJump();
     }
 
     private void OnCollisionEnter2D(Collision2D collision)

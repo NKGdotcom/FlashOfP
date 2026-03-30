@@ -84,6 +84,17 @@ public class PlayerPopcorn : MonoBehaviour
 
         Destroy(_popcorn, destroyInterval);
     }
+
+    public void ResetPopcorn()
+    {
+        foreach (var word in wordPopcorns)
+        {
+            if (word != null)
+            {
+                word.ResetWord();
+            }
+        }
+    }
     private void OnDisable()
     {
         if (abilityCts != null)

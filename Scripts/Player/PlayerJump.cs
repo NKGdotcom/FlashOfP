@@ -46,13 +46,22 @@ public class PlayerJump : MonoBehaviour
     {
         while (true)
         {
-            //---‚Ç‚ê‚©‚ªIsJumpTriggertrue‚É‚È‚Á‚½‚ç---
             await UniTask.WaitUntil(() => wordJumps.Any(w => w != null && w.IsJumpTrigger), cancellationToken: _token);
             var triggeredWord = wordJumps.FirstOrDefault(w => w != null && w.IsJumpTrigger);
-
+            SoundManager.Instance.PlaySE(SESource.JUMP);
             playerRbMover.JumpRb(jumpPower);
 
             await UniTask.Delay(TimeSpan.FromSeconds(jumpInterval), cancellationToken: _token);
+        }
+    }
+    public void ResetJump()
+    {
+        foreach(var wordJump in wordJumps)
+        {
+            if (wordJump != null)
+            {
+                wordJump.ResetWord();
+            }
         }
     }
     private void OnDisable()

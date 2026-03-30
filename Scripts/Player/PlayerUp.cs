@@ -28,4 +28,15 @@ public class PlayerUp : MonoBehaviour
 
         playerRbMover.UpRb(upSpeed);
     }
+
+    public void ResetUp()
+    {
+        foreach(var wordUp in wordUps)
+        {
+            if (wordUp != null)
+            {
+                wordUp.ResetWord();
+            }
+        }
+    }
 }

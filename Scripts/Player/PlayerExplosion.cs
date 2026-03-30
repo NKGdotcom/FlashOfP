@@ -51,4 +51,15 @@ public class PlayerExplosion : MonoBehaviour
 
         playerRbMover.ExplosionRb(_power);
     }
+
+    public void ResetExplosion()
+    {
+        foreach (var wordExplosion in wordExplosions)
+        {
+            if (wordExplosion != null)
+            {
+                wordExplosion.ResetWord();
+            }
+        }
+    }
 }

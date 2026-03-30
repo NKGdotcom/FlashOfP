@@ -71,7 +71,6 @@ public class PlayerDragController : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (collision.TryGetComponent<IWord>(out wordUI))
         {
-            Debug.Log(wordUI);
             isOnWord = true;
         }
     }
