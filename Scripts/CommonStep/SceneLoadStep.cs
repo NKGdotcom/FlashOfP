@@ -24,6 +24,7 @@ public class SceneLoadStep : StepBase
     {
         fadeIn.FadeInAsync(this.GetCancellationTokenOnDestroy()).Forget();
         PlayerInitialSet();
+        GameState.Instance.SetState(State.EXPLAIN);
         ExitStep();
     }
     /// <summary>

@@ -14,7 +14,9 @@ public class Step : MonoBehaviour
     [SerializeField] private ResetStage resetStage;
 
     private int currentStep = 0; //ˆê”ÔÅ‰‚É–ß‚é
-    private const int FIRST_STEP = 0; 
+    private const int FIRST_STEP = 0;
+
+    private int tutorialNum = 4; 
     private void Awake()
     {
         if(flow == null) { Debug.LogError("flow‚ªQÆ‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ"); return; }
@@ -52,7 +54,7 @@ public class Step : MonoBehaviour
         {
             flow[currentStep].UpdateStep();
         }
-        if (Input.GetKeyDown(KeyCode.R) && GameState.Instance.IsGame())
+        if (Input.GetKeyDown(KeyCode.R) && GameState.Instance.IsGame() && flow.Length < tutorialNum)
         {
             StageRetry().Forget();
         }
