@@ -1,20 +1,17 @@
 using System;
 using UnityEngine;
-/// <summary>
-/// プレイヤーを重力を反転
-/// </summary>
+
 public class WordFlip : BaseWord
 {
+    [SerializeField] private Animator flipAnimator;
+    private const string SLIP_STRING = "Flip";
+
     //アニメーションを再生
-    public override void WordEffect()
+    public override void WordEffect(GameObject _word)
     {
-        base.WordEffect();
-        SoundManager.Instance.PlaySE(SESource.FLIP);
-        wordAnimator.FlipAnimation();
-        FinishActionEvent();
-    }
-    public override void ResetWord()
-    {
-        base.ResetWord();
+        if (flipAnimator == null) { Debug.LogWarning("アニメーターが接続されていません"); return; }
+
+        flipAnimator.SetTrigger(SLIP_STRING);
+        FinishActionEvent(); //オブジェクトが逆向きに
     }
 }

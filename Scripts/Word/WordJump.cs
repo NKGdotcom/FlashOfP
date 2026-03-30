@@ -1,39 +1,40 @@
 using UnityEngine;
 using System;
-/// <summary>
-/// プレイヤーがジャンプする
-/// </summary>
-public class WordJump :BaseCondition, IWord
-{
-    //---ジャンプアニメーション---
-    [SerializeField] private WordAnimationController wordAnimator;
-    //---完了---
-    public event Action WordComplete;
 
-    public bool IsJumpTrigger { get; set; } = false;
+public class WordJump : ConditionBase, IWord
+{
+    [SerializeField] private Animator jumpAnimator;
+    private RectTransform rectTransform;
+    private const string JUMP_STRING = "Jump";
+    private const string FINISH_STRING = "End";
+
+    private Vector2 originPos;
+    private bool isComplete = false;
+    public event Action FinishAction;
+
     private void Awake()
     {
-        if (wordAnimator == null) { Debug.LogWarning("wordAnimatorが参照されていません"); return; }
+        rectTransform = GetComponent<RectTransform>();
+        originPos = rectTransform.anchoredPosition;
     }
+
     private void OnEnable()
     {
-        IsJumpTrigger = false;
+        rectTransform.anchoredPosition = originPos;
     }
     //アニメーションを再生
-    public void WordEffect()
+    public void WordEffect(GameObject _word)
     {
-        wordAnimator.JumpAnimation();
-        isFinish = true;
-        IsJumpTrigger = true;
-        WordComplete?.Invoke();
+        if (jumpAnimator == null) { Debug.LogWarning("アニメーターが接続されていません"); return; }
+
+        jumpAnimator.SetTrigger(JUMP_STRING);
+
+        isComplete = true;
+        FinishAction?.Invoke(); //PObjがジャンプできるように
     }
-    public void ResetWord()
+
+    public override bool CheckCondition()
     {
-        if (IsJumpTrigger)
-        {
-            wordAnimator.EndAnimation();
-            isFinish = false;
-            IsJumpTrigger = false;
-        }
+        return isComplete;
     }
 }
