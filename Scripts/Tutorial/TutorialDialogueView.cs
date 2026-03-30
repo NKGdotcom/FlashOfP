@@ -34,14 +34,31 @@ public class TutorialDialogueView : MonoBehaviour
         dialogueUI.SetActive(false);
     }
 
-    public async UniTaskVoid TypeSentenceAsync(CancellationToken _token, string _empty, string _oneDialogue)
+    /// <summary>
+    /// 文字を即座に全表示する（スキップ用）
+    /// </summary>
+    public void ShowFullText(string fullText)
+    {
+        tutorialDialogueText.text = fullText;
+    }
+
+    /// <summary>
+    /// 戻り値を UniTask<bool> に変更（最後まで表示完了したらtrue、キャンセルされたらfalse）
+    /// </summary>
+    public async UniTask<bool> TypeSentenceAsync(CancellationToken _token, string _empty, string _oneDialogue)
     {
         tutorialDialogueText.text = _empty;
         foreach (var _letter in _oneDialogue)
         {
             tutorialDialogueText.text += _letter;
-            //---文字を表示するスピード---
-            await UniTask.Delay(TimeSpan.FromSeconds(displaySpeed), cancellationToken: _token);
+
+            bool isCancelled = await UniTask.Delay(TimeSpan.FromSeconds(displaySpeed), cancellationToken: _token).SuppressCancellationThrow();
+
+            if (isCancelled)
+            {
+                return false; 
+            }
         }
+        return true;
     }
 }
