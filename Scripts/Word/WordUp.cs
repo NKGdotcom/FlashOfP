@@ -1,17 +1,25 @@
 using UnityEngine;
 using System;
 
+/// <summary>
+/// 上にゆっくり浮かぶ形をとる
+/// </summary>
 public class WordUp : BaseWord
-{ 
-    [SerializeField] private Animator upAnimator;
-    private const string UP_STRING = "Up";
+{
+    public bool IsUp { get; private set; } = false;
 
-    //アニメーションを再生
-    public override void WordEffect(GameObject _word)
+    // アニメーションを再生
+    public override void WordEffect()
     {
-        if (upAnimator == null) { Debug.LogWarning("アニメーターが接続されていません"); return; }
-
-        upAnimator.SetTrigger(UP_STRING);
-        FinishActionEvent(); //浮かぶ
+        base.WordEffect();
+        IsUp = true;
+        SoundManager.Instance.PlaySE(SESource.UP);
+        wordAnimator.UpAnimation();
+        FinishActionEvent();
+    }
+    public override void ResetWord()
+    {
+        base.ResetWord();
+        IsUp = false;
     }
 }

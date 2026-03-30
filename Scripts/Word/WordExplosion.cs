@@ -1,17 +1,25 @@
 using UnityEngine;
 using System;
 
+/// <summary>
+/// 床を爆発させる
+/// </summary>
 public class WordExplosion : BaseWord
 {
-    [SerializeField] private Animator explosionAnimator;
-    private const string EXPLOSION_STRING = "Explosion";
+    public bool IsExplosionTrigger { get; private set; } = false;
 
     //アニメーションを再生
-    public override void WordEffect(GameObject _word)
+    public override void WordEffect()
     {
-        if (explosionAnimator == null) { Debug.LogWarning("アニメーターが接続されていません"); return;}
-
-        explosionAnimator.SetTrigger(EXPLOSION_STRING);
-        FinishActionEvent(); //爆発ができるように
+        base.WordEffect();
+        SoundManager.Instance.PlaySE(SESource.EXPLOSION);
+        wordAnimator.ExplosionAnimation();
+        IsExplosionTrigger = true;
+        FinishActionEvent();
+    }
+    public override void ResetWord()
+    {
+        base.ResetWord();
+        IsExplosionTrigger = false;
     }
 }
