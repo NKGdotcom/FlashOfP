@@ -2,63 +2,77 @@ using System.Linq;
 using UnityEngine;
 
 /// <summary>
-/// プレイヤーの爆発の処理
+/// プレイヤーの「爆発」アクションを管理するクラス
 /// </summary>
 public class PlayerExplosion : MonoBehaviour
 {
-    //---物理移動---
+    [Header("コンポーネント参照")]
+    [Tooltip("爆発時の吹き飛ばしを処理するクラス")]
     [SerializeField] private PlayerRbMover playerRbMover;
+    [Tooltip("爆発のトリガーとなる単語（Word）の配列")]
     [SerializeField] private WordExplosion[] wordExplosions;
+
+    [Header("エフェクト")]
+    [Tooltip("爆発時に再生するパーティクルなどのエフェクト")]
     [SerializeField] private GameObject explosionEffect;
-    //---爆発パラメーター
-    private float explosionPower = 8;
+    //爆発パラメータ
+    private float explosionPower;
 
     private void Awake()
     {
         if (playerRbMover == null) { Debug.LogError("playerRbMoverが参照されていません"); return; }
+        if(explosionEffect == null) { Debug.LogError("explosionEffectが参照されていません"); return; }
         if (wordExplosions == null) { Debug.LogError("wordExplosionsが参照されていません"); return; }
     }
+
+    /// <summary>
+    /// PlayerDataから爆発の基本威力を受け取りセット
+    /// </summary>
+    /// <param name="_data"></param>
     public void SetUp(PlayerData _data)
     {
-        explosionPower = _data.explosionPower;
+        explosionPower = _data.ExplosionPower;
     }
+
     /// <summary>
-    /// 爆発
+    /// 爆発処理を実行
     /// </summary>
     /// <param name="_player"></param>
-    public void Explosion(PlayerController _player, Collision2D _collider)
+    public void Explosion(bool _isFlip, Collision2D _collision)
     {
+        //爆発条件 配列の中に1つでも爆発トリガーがONのWordが存在するか
         bool _canExplode = wordExplosions.Any(w => w != null && w.IsExplosionTrigger);
 
-        if (!_canExplode)
-        {
-            return;
-        
-        }
-        _collider.gameObject.SetActive(false);
+        if (!_canExplode) return;
 
+        //衝突したアイテムを非表示
+        _collision.gameObject.SetActive(false);
+
+        //爆発音を鳴らす
         SoundManager.Instance.PlaySE(SESource.EXPLOSION);
 
-        float _power = explosionPower;
+        //Flipの状態に応じて、力のかかる向きを変える
+        float _currentPower = _isFlip ? -explosionPower : explosionPower;
 
-        //ひっくり返っていたら力の加わり方も逆になる
-        if (!_player.IsFlip) _power = explosionPower;
-        else _power = -explosionPower;
-
+        //エフェクトを再生
         explosionEffect.SetActive(false);
         explosionEffect.transform.position = transform.position;
         explosionEffect.SetActive(true);
 
-        playerRbMover.ExplosionRb(_power);
+        //物理挙動側に計算した力を渡して吹き飛ばす
+        playerRbMover.ExplosionRb(_currentPower);
     }
 
+    /// <summary>
+    /// 爆発に関連するWordの状態を初期状態にリセットする
+    /// </summary>
     public void ResetExplosion()
     {
-        foreach (var wordExplosion in wordExplosions)
+        foreach (var _word in wordExplosions)
         {
-            if (wordExplosion != null)
+            if (_word != null)
             {
-                wordExplosion.ResetWord();
+                _word.ResetWord();
             }
         }
     }

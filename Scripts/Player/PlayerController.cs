@@ -1,36 +1,39 @@
 using UnityEngine;
 
 /// <summary>
-/// プレイヤーの脳の部分
+/// プレイヤーの各種能力コンポーネントを管理し、仲介役
+/// 各動作はコンポーネントに設定
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
-    //---プレイヤーのパラメータ---
+    [Header("プレイヤーのパラメータ設定")]
     [SerializeField] private PlayerData playerData;
-    //---移動---
-    [SerializeField] private PlayerMovement playerMovement;
-    //---ジャンプ挙動---
-    [SerializeField] private PlayerJump playerJump;
-    //---物理挙動---
-    [SerializeField] private PlayerRbMover playerRbMover;
-    //---逆重力---
-    [SerializeField] private PlayerFlip playerFlip;
+
+    //状態フラグ
     public bool IsFlip { get; private set; }
-    //---ポップコーン挙動
-    [SerializeField] private PlayerPopcorn playerPopcorn;
-    //---爆発挙動---
-    [SerializeField] private PlayerExplosion playerExplosion;
     public bool IsExplosion { get; private set; }
-    //---上に浮かぶ挙動---
+
+    [Header("プレイヤーの能力設定")]
+    [SerializeField] private PlayerMovement playerMovement;
+    [SerializeField] private PlayerJump playerJump;
+    [SerializeField] private PlayerRbMover playerRbMover;
+    [SerializeField] private PlayerFlip playerFlip;
+    [SerializeField] private PlayerPopcorn playerPopcorn;
+    [SerializeField] private PlayerExplosion playerExplosion;
     [SerializeField] private PlayerUp playerUp;
+
     private void Awake()
     {
         if(playerData == null) { Debug.LogError("playerDataが参照されていません"); return; }
         if(playerMovement == null) { Debug.LogError("playerMovementが参照されていません"); return; }
-        if (playerRbMover == null) { Debug.LogError("playerRbMoverが参照されていません"); return; }
+        if(playerJump == null) { Debug.LogError("playerJumpが参照されていません"); return; }
+        if(playerRbMover == null) { Debug.LogError("playerRbMoverが参照されていません"); return; }
         if(playerFlip == null) { Debug.LogError("playerFlipが参照されていません"); return; }
         if(playerPopcorn == null) { Debug.LogError("playerPopcornが参照されていません"); return; }
+        if(playerExplosion == null) { Debug.LogError("playerExplosionが参照されていません"); return; }
         if(playerUp == null) { Debug.LogError("playerUpが参照されていません"); return; }
+
+        //コンポーネント初期化
         playerMovement.SetParameter(playerData);
         playerJump.SetParameter(playerData);
         playerRbMover.SetUp();
@@ -38,7 +41,7 @@ public class PlayerController : MonoBehaviour
         playerExplosion.SetUp(playerData);
         playerUp.SetUp(playerData);
     }
-    // Update is called once per frame
+
     void Update()
     {
         if(Input.GetMouseButtonDown(0) && GameState.Instance.IsGame())
@@ -54,10 +57,20 @@ public class PlayerController : MonoBehaviour
 
     private void OnDisable()
     {
+        //非表示になったら停止をさせる
         playerRbMover.ForceZero();
     }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.TryGetComponent<ExplosionItem>(out var _item))
+        {
+            playerExplosion.Explosion(IsFlip, collision);
+        }
+    }
+
     /// <summary>
-    /// プレイヤーの能力をリセット
+    /// プレイヤーの全能力を初期状態にリセットする
     /// </summary>
     public void PlayerResetAbility()
     {
@@ -66,13 +79,5 @@ public class PlayerController : MonoBehaviour
         playerExplosion.ResetExplosion();
         playerUp.ResetUp();
         playerJump.ResetJump();
-    }
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if(collision.gameObject.TryGetComponent<ExplosionItem>(out var _item))
-        {
-            playerExplosion.Explosion(this, collision);
-        }
     }
 }
