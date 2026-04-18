@@ -4,13 +4,16 @@ using System.Threading;
 using TMPro;
 using UnityEngine;
 /// <summary>
-/// チュートリアルの対話を表示
+/// チュートリアルの対話をテキストに表示
 /// </summary>
 public class TutorialDialogueView : MonoBehaviour
 {
-    //---チュートリアルの文字説明---
+    [Header("チュートリアル対話UI")]
+    [Tooltip("チュートリアルのテキストと背景部分をまとめて親オブジェクト")]
     [SerializeField] private GameObject dialogueUI;
+    [Tooltip("チュートリアルの対話を表示させるテキスト")]
     [SerializeField] private TextMeshProUGUI tutorialDialogueText;
+    [Tooltip("テキストを表示させた後、次の文字を表示させるのにかかる時間")]
     [SerializeField] private float displaySpeed = 0.05f;
 
     void Awake()
@@ -22,17 +25,12 @@ public class TutorialDialogueView : MonoBehaviour
     /// <summary>
     /// チュートリアルのUIを表示
     /// </summary>
-    public void ShowDialogueUI()
-    {
-        dialogueUI.SetActive(true);
-    }
+    public void ShowDialogueUI() => dialogueUI.SetActive(true);
+
     /// <summary>
     /// UIを非表示
     /// </summary>
-    public void HideDialogueUI()
-    {
-        dialogueUI.SetActive(false);
-    }
+    public void HideDialogueUI()=> dialogueUI.SetActive(false);
 
     /// <summary>
     /// 文字を即座に全表示する（スキップ用）
@@ -43,15 +41,16 @@ public class TutorialDialogueView : MonoBehaviour
     }
 
     /// <summary>
-    /// 戻り値を UniTask<bool> に変更（最後まで表示完了したらtrue、キャンセルされたらfalse）
+    /// 非同期処理でタイピングを表現
+    /// 全てタイピングするか、クリックしたら終了
     /// </summary>
     public async UniTask<bool> TypeSentenceAsync(CancellationToken _token, string _empty, string _oneDialogue)
     {
         tutorialDialogueText.text = _empty;
         foreach (var _letter in _oneDialogue)
         {
+            //1文字表示したら、ほんの数秒待ち、再び追加
             tutorialDialogueText.text += _letter;
-
             bool isCancelled = await UniTask.Delay(TimeSpan.FromSeconds(displaySpeed), cancellationToken: _token).SuppressCancellationThrow();
 
             if (isCancelled)

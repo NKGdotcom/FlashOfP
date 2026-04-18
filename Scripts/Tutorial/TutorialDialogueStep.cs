@@ -3,22 +3,28 @@ using System;
 using System.Threading;
 using UnityEngine;
 /// <summary>
-/// チュートリアルステップ
+/// チュートリアルの会話を振興するステップ
+/// 文字送り表示、クリックによるスキップ、次のセリフへの遷移を管理
 /// </summary>
 public class TutorialDialogueStep : StepBase
 {
-    //---チュートリアルで一度に話す量をセット---
+    [Header("チュートリアルデータ")]
+    [Tooltip("このステップで表示する会話データのリスト")]
     [SerializeField] private TutorialDialogueData tutorialDialogueData;
-    private string onceDialogue;
-    private CancellationTokenSource typingCts;
-    //---チュートリアルの表示について---
-    [SerializeField] private TutorialDialogueView tutorialDialogueView;
-    private int currentLine = 0;
-    private const string EMPTY_STRING = "";
-    private float waitDelayNextStep = 0.2f;
 
-    //---現在文字を表示中かどうかのフラグ---
+    [Header("UI参照")]
+    [Tooltip("会話を表示するコンポーネント")]
+    [SerializeField] private TutorialDialogueView tutorialDialogueView;
+
+    [Header("演出設定")]
+    [Tooltip("最後の会話が終わってから、次のステップへ進むまでの待機時間")]
+    [SerializeField] private float waitDelayNextStep = 0.2f;
+    
+    //状態
+    private int currentLine = 0;
+    private string currentDialogue;
     private bool isTyping = false;
+    private CancellationTokenSource typingCts;
 
     private void Awake()
     {
@@ -26,69 +32,17 @@ public class TutorialDialogueStep : StepBase
         if (tutorialDialogueView == null) { Debug.LogWarning("tutorialDialogueViewが設定していません"); return; }
     }
 
+    /// <summary>
+    /// ステップ開始した際の初期化
+    /// </summary>
     public override void EnterStep()
-    {
-        StartTutorial();
-    }
-
-    /// <summary>
-    /// チュートリアルに入る
-    /// </summary>
-    private void StartTutorial()
-    {
-        Debug.Log("チュートリアル");
-        InitialTutorial();
-    }
-
-    /// <summary>
-    /// チュートリアルの初期化
-    /// </summary>
-    private void InitialTutorial()
     {
         currentLine = 0;
         tutorialDialogueView.ShowDialogueUI();
-        UpdateView();
+
         GameState.Instance.SetState(State.EXPLAIN);
-    }
 
-    /// <summary>
-    /// チュートリアルのデータを渡し、流す
-    /// </summary>
-    private void UpdateView()
-    {
-        onceDialogue = EMPTY_STRING;
-        onceDialogue = TutorialOneDialogue();
-
-        if (typingCts != null)
-        {
-            typingCts.Cancel();
-            typingCts.Dispose();
-        }
-        typingCts = CancellationTokenSource.CreateLinkedTokenSource(this.GetCancellationTokenOnDestroy());
-
-        isTyping = true;
-        RunTypingAsync().Forget();
-    }
-
-    /// <summary>
-    /// 文字送りの非同期処理を待機し、状態を管理する
-    /// </summary>
-    private async UniTaskVoid RunTypingAsync()
-    {
-        bool isCompleted = await tutorialDialogueView.TypeSentenceAsync(typingCts.Token, EMPTY_STRING, onceDialogue);
-
-        if (isCompleted)
-        {
-            isTyping = false;
-        }
-    }
-
-    /// <summary>
-    /// チュートリアルに流す会話を取得
-    /// </summary>
-    private string TutorialOneDialogue()
-    {
-        return tutorialDialogueData.DialoguesLists[currentLine].TutorialDialogueText;
+        PlayNextDialogue();
     }
 
     public override void UpdateStep()
@@ -97,35 +51,88 @@ public class TutorialDialogueStep : StepBase
         {
             if (isTyping)
             {
-                if (typingCts != null)
-                {
-                    typingCts.Cancel();
-                    typingCts.Dispose();
-                    typingCts = null;
-                }
-                tutorialDialogueView.ShowFullText(onceDialogue);
+                //タイピング中なら全文字を即時表示
+                CancelTyping();
+                tutorialDialogueView.ShowFullText(currentDialogue);
                 isTyping = false;
             }
             else
             {
+                //タイピングが完了していれば次の行へ進む
                 currentLine++;
 
-                if (IsLeftTutorialDialogue()) { UpdateView(); }
+                if (HasNextDialogue()) { PlayNextDialogue(); }
                 else { DelayNextStep().Forget(); }
             }
         }
     }
 
     /// <summary>
-    /// チュートリアルがまだ残っている場合
+    /// このステップが終わる際に呼び出す
     /// </summary>
-    private bool IsLeftTutorialDialogue()
+    public override void ExitStep() => Complete();
+
+    /// <summary>
+    /// リトライで呼び出す際に、再びUIを非表示にしリロード
+    /// </summary>
+    /// <param name="_token"></param>
+    /// <returns></returns>
+    public override UniTask RetryStep(CancellationToken _token)
     {
-        return currentLine < tutorialDialogueData.DialoguesLists.Count;
+        tutorialDialogueView.HideDialogueUI();
+        return UniTask.CompletedTask;
+    }
+
+    private void PlayNextDialogue()
+    {
+        //現在の行のテキストを取得
+        currentDialogue = tutorialDialogueData.DialoguesLists[currentLine].TutorialDialogueText;
+
+        //前回のタイピング処理が残っていたらキャンセル
+        CancelTyping();
+
+        typingCts = CancellationTokenSource.CreateLinkedTokenSource(this.GetCancellationTokenOnDestroy());
+
+        isTyping = true;
+        RunTypingAsync().Forget();
     }
 
     /// <summary>
-    /// 次のステップに進む前に少し待つ
+    /// ビュー側に文字送りを依頼し、終わるまで待機する非同期処理
+    /// </summary>
+    private async UniTaskVoid RunTypingAsync()
+    {
+        //文字送りが完了したかを受け取る
+        bool _isCompleted = await tutorialDialogueView.TypeSentenceAsync(typingCts.Token, string.Empty,currentDialogue);
+
+        //最後まで表示されたらタイピング状態を削除
+        if (_isCompleted)
+        {
+            isTyping = false;
+        }
+    }
+    /// <summary>
+    /// 実行中のタイピング処理をキャンセルし、破棄
+    /// </summary>
+    private void CancelTyping()
+    {
+        //タイピング中なら、文字送りをキャンセルし、全文字を即時表示(スキップ)
+        if (typingCts != null)
+        {
+            typingCts.Cancel();
+            typingCts.Dispose();
+            typingCts = null;
+        }
+    }
+
+    /// <summary>
+    /// まだ表示していない会話が残っているか
+    /// </summary>
+    /// <returns></returns>
+    private bool HasNextDialogue() => currentLine < tutorialDialogueData.DialoguesLists.Count;
+
+    /// <summary>
+    /// 次のステップに進む前に少し待ってからステップを終了する
     /// </summary>
     private async UniTaskVoid DelayNextStep()
     {
@@ -133,16 +140,5 @@ public class TutorialDialogueStep : StepBase
         await UniTask.Delay(TimeSpan.FromSeconds(waitDelayNextStep),
             cancellationToken: this.GetCancellationTokenOnDestroy());
         ExitStep();
-    }
-
-    public override UniTask RetryStep(CancellationToken _token)
-    {
-        tutorialDialogueView.HideDialogueUI();
-        return UniTask.CompletedTask;
-    }
-
-    public override void ExitStep()
-    {
-        Complete(); // 元のコードのまま
     }
 }
