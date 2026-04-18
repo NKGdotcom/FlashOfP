@@ -1,50 +1,73 @@
 using UnityEngine;
 /// <summary>
-/// Stage 2 PerfectCondition
+/// ステージ2の条件付きクリアの条件
 /// </summary>
 public class Stage2Condition : BasePerfectCondition
 {
+    [Header("条件判定用ギミック")]
+    [Tooltip("ステージ2にあるFlipWord")]
     [SerializeField] private WordFlip wordFlip;
+    [Tooltip("ステージ2にあるJumpWord")]
     [SerializeField] private WordJump wordJump;
-    //---それぞれが完了したかどうかを記録するフラグ---
+
+    //それぞれが完了したかどうかを記録するフラグ
     private bool isFlipComplete = false;
     private bool isJumpComplete = false;
 
+    private void Awake()
+    {
+        if(wordFlip == null) { Debug.LogError("wordFlipが参照されていません"); return; }
+        if(wordJump == null) { Debug.LogError("wordJumpが参照されていません"); return; }
+    }
+
     private void OnEnable()
     {
-        if (wordFlip != null)
-        {
-            wordFlip.WordComplete += OnFlipComplete;
-        }
-        if (wordJump != null)
-        {
-            wordJump.WordComplete += OnJumpComplete;
-        }
+        isFlipComplete = false;
+        isJumpComplete = false;
+
+        wordFlip.WordComplete += FlipComplete;
+        wordJump.WordComplete += JumpComplete;
+        wordFlip.WordReset += ResetComplete;
+        wordJump.WordReset += ResetComplete;
     }
 
     private void OnDisable()
     {
-        if (wordFlip != null)
-        {
-            wordFlip.WordComplete -= OnFlipComplete;
-        }
-        if (wordJump != null)
-        {
-            wordJump.WordComplete -= OnJumpComplete;
-        }
+        wordFlip.WordComplete -= FlipComplete;
+        wordJump.WordComplete -= JumpComplete;
+        wordFlip.WordReset -= ResetComplete;
+        wordJump.WordReset -= ResetComplete;
     }
 
-    private void OnFlipComplete()
+    /// <summary>
+    /// Flipを完成させていたら条件達成
+    /// </summary>
+    private void FlipComplete()
     {
         isFlipComplete = true;
     }
 
-    private void OnJumpComplete()
+    /// <summary>
+    /// Jumpを完成させていたら条件達成
+    /// </summary>
+    private void JumpComplete()
     {
         isJumpComplete = true;
     }
 
-    // StageGoalなどから呼ばれる判定メソッド
+    /// <summary>
+    /// ステージを再起する際にいったんクリア条件をリセット
+    /// </summary>
+    private void ResetComplete()
+    {
+        isFlipComplete = false;
+        isJumpComplete = false;
+    }
+
+    /// <summary>
+    /// FlipとJumpをどちらも完成させたらクリア
+    /// </summary>
+    /// <returns></returns>
     public override bool IsPerfect()
     {
         return isFlipComplete && isJumpComplete;
