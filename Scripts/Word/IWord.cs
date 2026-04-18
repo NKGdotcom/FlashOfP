@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// 私は言葉ですインタフェース
+/// 言葉の効果発動やリセットを定義するインタフェース
 /// </summary>
 public interface IWord
 {

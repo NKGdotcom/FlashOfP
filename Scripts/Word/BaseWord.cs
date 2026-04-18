@@ -2,52 +2,54 @@ using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 /// <summary>
-/// 言葉の元となるもの
+/// ゲーム内に登場する言葉の基本となるクラス
+/// アニメーションの制御や、完成時のイベント通知
 /// </summary>
-
 public class BaseWord : MonoBehaviour, IWord
 {
-    //---言葉を完成した際のアニメーション
+    [Header("アニメーション制御")]
+    [Tooltip("言葉のアニメーションを統括するコントローラ")]
     [SerializeField] protected WordAnimationController wordAnimator;
+
+    //すでにアニメーションが実行されたかどうか
     private bool isAnimated = false;
-    //---言葉を使用した---
+    
+    //言葉の完成時に呼ばれる
     public event Action WordComplete;
 
-    private void Awake()
+    //言葉が初期状態にリセットされた時に呼ばれる
+    public event Action WordReset;
+
+    protected virtual void Awake()
     {
         if (wordAnimator == null) { Debug.LogWarning("wordAnimatorが参照されていません"); return; }
     }
 
-    private void OnEnable()
-    {
-
-    }
     /// <summary>
-    /// 言葉の位置などをリセット
-    /// </summary>
-    public virtual void ResetWord()
-    {
-        if (isAnimated)
-        {
-            isAnimated = false;
-            wordAnimator.EndAnimation();
-        }
-    }
-    /// <summary>
-    /// 言葉の効果
+    /// 言葉の効果を発動する
     /// </summary>
     /// <param name="_word"></param>
     public virtual void WordEffect()
     {
         isAnimated = true;
-
     }
+
     /// <summary>
-    /// 言葉が完成した後
+    /// 言葉の状態やアニメーションを初期状態に戻す
     /// </summary>
-
-    public void FinishActionEvent()
+    public virtual void ResetWord()
     {
-        WordComplete?.Invoke();
+        //既に使われている場合のみリセット処理を行う
+        if (isAnimated)
+        {
+            isAnimated = false;
+            wordAnimator.EndAnimation();
+            WordReset?.Invoke();
+        }
     }
+    
+    /// <summary>
+    /// 言葉のアニメーションや効果が全て完成した後に呼ばれる処理
+    /// </summary>
+    public void FinishActionEvent() => WordComplete?.Invoke();
 }
