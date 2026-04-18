@@ -4,17 +4,32 @@ using System.Threading;
 using UnityEngine;
 
 /// <summary>
-/// リセットの初期処理
+/// ステップの処理の一通りの流れ
 /// </summary>
 public interface IStep
 {
-    void EnterStep(); //ステップに入ったとき
+    /// <summary>
+    /// ステップに入った瞬間に呼び出す(初期化)
+    /// </summary>
+    void EnterStep(); 
 
-    void UpdateStep(); //ステップの間
+    /// <summary>
+    /// ステップの間マイフレーム呼び出す
+    /// </summary>
+    void UpdateStep();
 
-    void ExitStep(); //ステップが終わったとき
+    /// <summary>
+    /// ステップが終わった時に呼び出す
+    /// </summary>
+    void ExitStep();
 
-    UniTask RetryStep(CancellationToken _token); //リトライ時の初期化
+    /// <summary>
+    /// リトライ時に呼び出す
+    /// </summary>
+    /// <param name="_token"></param>
+    /// <returns></returns>
+    UniTask RetryStep(CancellationToken _token);
 
-    event Action OnFinishStep; //ステップが終わったことを知らせる
+    //ステップが終わったことを知らせる
+    event Action OnFinishStep; 
 }

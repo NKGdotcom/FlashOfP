@@ -9,34 +9,32 @@ public abstract class StepBase : MonoBehaviour, IStep
 {
     //ステップ完了時に通知
     public event Action OnFinishStep;
-    /// <summary>
-    /// ステップに入った時に呼び出す
-    /// </summary>
-    public virtual void EnterStep()
-    {
 
-    }
     /// <summary>
-    /// 毎フレームチェック
+    /// このステップに入った瞬間に呼ばれる処理(初期化)
     /// </summary>
-    public virtual void UpdateStep()
-    {
+    public virtual void EnterStep() { }
 
-    }
     /// <summary>
-    /// ステップを抜けるときに呼ぶ
+    /// このステップにいる間マイフレーム呼ばれる更新処理
     /// </summary>
-    public virtual void ExitStep()
-    {
+    public virtual void UpdateStep() { }
 
-    }
     /// <summary>
-    /// リトライの時に呼び出す
+    /// このステップを終了して次へ進むときの処理
     /// </summary>
+    public virtual void ExitStep() { }
+
+    /// <summary>
+    /// ゲームをリトライした際に、このステップの状態を初期化
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
     public virtual UniTask RetryStep(CancellationToken _token)
     {
        return UniTask.CompletedTask;
     }
+
     /// <summary>
     /// 終了したときに呼び出す
     /// </summary>
