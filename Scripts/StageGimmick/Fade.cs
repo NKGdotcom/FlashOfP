@@ -5,12 +5,15 @@ using UnityEngine;
 
 /// <summary>
 /// フェード用のアニメーション
+/// フェードイン、フェードアウトを起こす
 /// </summary>
 public class Fade : MonoBehaviour
 {
-    //---アニメーション---
+    [Header("コンポーネント参照")]
+    [Tooltip("アニメーションを制御する対象のAnimator")]
     [SerializeField] private Animator fadeAnimator;
     private const string BOOL_CLEAR = "Clear";
+
     private void Awake()
     {
         if (fadeAnimator == null) { Debug.LogError("fadeAnimatorが参照されていません"); return; }
@@ -35,10 +38,10 @@ public class Fade : MonoBehaviour
     public async UniTask FadeOutAsync(CancellationToken _token)
     {
         fadeAnimator.SetBool(BOOL_CLEAR, false);
-        //---1フレーム待つ---
+        //1フレーム待ち、現在行っているアニメーション処理(フェード)の長さを取得
         await UniTask.Yield(_token);
         AnimatorStateInfo _stateInfo = fadeAnimator.GetCurrentAnimatorStateInfo(0);
-        //---現在再生しているアニメーションの長さ分待つ---
+        //フェードが終わりまでアニメーションの長さ分待つ
         await UniTask.Delay(TimeSpan.FromSeconds(_stateInfo.length), cancellationToken: _token);
     }
 }

@@ -1,11 +1,12 @@
 using System;
 using UnityEngine;
 /// <summary>
-/// リトライが必要とされるオブジェクト
+/// 画面外に落ちた際にリトライで元に戻す
 /// </summary>
 public class RetryObject : MonoBehaviour
 {
     public event Action OnRetry;
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if(collision.TryGetComponent<PlayerController>(out var _player))

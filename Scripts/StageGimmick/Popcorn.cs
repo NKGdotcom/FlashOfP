@@ -1,8 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// ポップコーンが触れたらの処理を行う
-/// </summary>
+/// ポップコーンを管理するクラス
+/// /// </summary>
 public class Popcorn : MonoBehaviour
 {
 

@@ -1,15 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 /// <summary>
-/// 言葉の処理などをリセットさせるクラス
+/// 言葉の処理(アニメーションや効果)を全てリセットさせるクラス
 /// </summary>
 public class RetryWord : MonoBehaviour
 {
+    [Header("コンポーネント参照")]
+    [Tooltip("ステージ内にあるWordをすべてリセット")]
     [SerializeField] private List<GameObject> stageWords;
     private List<IWord> wordsList = new List<IWord>();
+
     void Awake()
     {
-        if (stageWords == null) return;
+        if (stageWords == null) { Debug.LogError("stageWordsが参照されていません"); return; }
 
         foreach (var _word in stageWords)
         {
@@ -20,6 +23,7 @@ public class RetryWord : MonoBehaviour
             }
         }
     }
+
     /// <summary>
     /// 言葉をすべてリセット
     /// </summary>

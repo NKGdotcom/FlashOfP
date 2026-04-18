@@ -1,11 +1,17 @@
 using UnityEngine;
 /// <summary>
-/// 私は条件ですインタフェース
+/// ステップの進行やゲームクリアの条件を定義するインタフェース
 /// </summary>
 public interface ICondition
 {
-    //条件を満たしたか確認
+    /// <summary>
+    /// 条件を満たしたか確認
+    /// </summary>
+    /// <returns></returns>
     bool CheckCondition();
-    //条件をリセット
+    
+    /// <summary>
+    /// リトライ時などに、条件の進行状況を初期状態にクリア
+    /// </summary>
     void ResetCondition();
 }
